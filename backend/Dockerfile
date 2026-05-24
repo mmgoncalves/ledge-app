@@ -5,6 +5,11 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci --only=production=false
 
+# Generate Prisma client before tsc so @prisma/client types are available
+COPY prisma ./prisma
+COPY prisma.config.ts ./
+RUN npx prisma generate
+
 COPY tsconfig.json ./
 COPY src ./src
 RUN npm run build
