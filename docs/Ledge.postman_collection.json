@@ -1,0 +1,313 @@
+{
+  "info": {
+    "name": "Ledge API",
+    "description": "Coleção completa da API do Ledge — finanças pessoais.\n\nComo usar:\n1. Importe também o arquivo `Ledge.postman_environment.json`\n2. Selecione o environment \"Ledge — VPS\" no canto superior direito\n3. Comece por Auth → Register para criar seu usuário\n4. Depois Auth → Login — o token será salvo automaticamente\n5. Todas as demais rotas já usam o token salvo",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health check",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            },
+            "description": "Verifica se a API está no ar. Não requer autenticação."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"mateus@ledge.app\",\n  \"password\": \"sua_senha_aqui\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Cria um novo usuário. Rode apenas uma vez."
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.token) {",
+                  "    pm.environment.set('token', json.token);",
+                  "    console.log('✅ Token salvo automaticamente');",
+                  "} else {",
+                  "    console.log('❌ Login falhou:', JSON.stringify(json));",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"mateus@ledge.app\",\n  \"password\": \"sua_senha_aqui\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Faz login e salva o token JWT automaticamente na variável `token`. Você não precisa copiar o token manualmente."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Billing Cycles",
+      "item": [
+        {
+          "name": "List cycles",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/cycles",
+              "host": ["{{base_url}}"],
+              "path": ["cycles"]
+            },
+            "description": "Lista todos os ciclos de fatura do usuário, ordenados por data."
+          }
+        },
+        {
+          "name": "Get current cycle",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/cycles/current",
+              "host": ["{{base_url}}"],
+              "path": ["cycles", "current"]
+            },
+            "description": "Retorna o ciclo cuja data atual está entre startDate e endDate, com todas as transações incluídas."
+          }
+        },
+        {
+          "name": "Get cycle by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/cycles/{{cycle_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["cycles", "{{cycle_id}}"]
+            },
+            "description": "Busca um ciclo específico com suas transações. Preencha a variável `cycle_id` com o ID retornado em List cycles."
+          }
+        },
+        {
+          "name": "Create cycle",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.id) {",
+                  "    pm.environment.set('cycle_id', json.id);",
+                  "    console.log('✅ cycle_id salvo:', json.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"startDate\": \"2026-06-01\",\n  \"endDate\": \"2026-06-30\",\n  \"cutDay\": 10\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/cycles",
+              "host": ["{{base_url}}"],
+              "path": ["cycles"]
+            },
+            "description": "Cria um novo ciclo de fatura. O ID retornado é salvo automaticamente em `cycle_id`."
+          }
+        },
+        {
+          "name": "Get cycle summary",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/cycles/{{cycle_id}}/summary",
+              "host": ["{{base_url}}"],
+              "path": ["cycles", "{{cycle_id}}", "summary"]
+            },
+            "description": "Retorna totalIncome, totalEssential, totalNonEssential, balance e transactionCount do ciclo (valores em centavos)."
+          }
+        },
+        {
+          "name": "List transactions",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/cycles/{{cycle_id}}/transactions",
+              "host": ["{{base_url}}"],
+              "path": ["cycles", "{{cycle_id}}", "transactions"]
+            },
+            "description": "Lista todos os lançamentos de um ciclo específico."
+          }
+        },
+        {
+          "name": "Create transaction",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.id) {",
+                  "    pm.environment.set('transaction_id', json.id);",
+                  "    console.log('✅ transaction_id salvo:', json.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Mercado\",\n  \"amount\": 15000,\n  \"date\": \"2026-06-10\",\n  \"type\": \"ESSENTIAL\",\n  \"paymentMethod\": \"PIX\",\n  \"installmentTotal\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/cycles/{{cycle_id}}/transactions",
+              "host": ["{{base_url}}"],
+              "path": ["cycles", "{{cycle_id}}", "transactions"]
+            },
+            "description": "Cria um lançamento no ciclo. Para parcelado, use installmentTotal > 1 — os lançamentos seguintes são criados automaticamente nos próximos ciclos.\n\nTipos válidos: ESSENTIAL, NON_ESSENTIAL, INCOME\nFormas de pagamento: CREDIT_CARD, DEBIT_CARD, PIX, CASH\nValores em centavos (ex: R$150,00 = 15000)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Transactions",
+      "item": [
+        {
+          "name": "Update transaction",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Mercado (atualizado)\",\n  \"amount\": 18000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/transactions/{{transaction_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["transactions", "{{transaction_id}}"]
+            },
+            "description": "Edita um lançamento. Todos os campos são opcionais — envie apenas o que quiser alterar. Não afeta outras parcelas."
+          }
+        },
+        {
+          "name": "Delete transaction",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/transactions/{{transaction_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["transactions", "{{transaction_id}}"]
+            },
+            "description": "Remove apenas este lançamento. Outras parcelas do mesmo parcelamento não são afetadas."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Export",
+      "item": [
+        {
+          "name": "Export JSON",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/export?format=json",
+              "host": ["{{base_url}}"],
+              "path": ["export"],
+              "query": [
+                { "key": "format", "value": "json" }
+              ]
+            },
+            "description": "Exporta todos os ciclos e lançamentos do usuário em JSON estruturado (ciclos com transações aninhadas). Retorna um arquivo para download."
+          }
+        },
+        {
+          "name": "Export CSV",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/export?format=csv",
+              "host": ["{{base_url}}"],
+              "path": ["export"],
+              "query": [
+                { "key": "format", "value": "csv" }
+              ]
+            },
+            "description": "Exporta todos os dados em planilha CSV (uma linha por lançamento). Retorna um arquivo para download."
+          }
+        }
+      ]
+    }
+  ]
+}
