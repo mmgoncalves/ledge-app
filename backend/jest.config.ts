@@ -7,6 +7,7 @@ const config: Config = {
   transform: {
     '^.+\\.ts$': ['ts-jest', { tsconfig: './tsconfig.test.json' }],
   },
+  setupFiles: ['<rootDir>/tests/jest.setup.ts'],
   collectCoverageFrom: ['src/**/*.ts', '!src/index.ts'],
   coverageThreshold: {
     global: {
