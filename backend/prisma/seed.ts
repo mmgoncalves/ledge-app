@@ -13,13 +13,15 @@ async function main() {
   console.log('🌱 Seeding database...');
 
   // ─── User ────────────────────────────────────────────────────────────────────
-  const passwordHash = await bcrypt.hash('senha123', 12);
+  const seedEmail = process.env.SEED_USER_EMAIL ?? 'dev@ledge.local';
+  const seedPassword = process.env.SEED_USER_PASSWORD ?? 'changeme';
+  const passwordHash = await bcrypt.hash(seedPassword, 12);
 
   const user = await prisma.user.upsert({
-    where: { email: 'mateus@ledge.app' },
+    where: { email: seedEmail },
     update: {},
     create: {
-      email: 'mateus@ledge.app',
+      email: seedEmail,
       passwordHash,
     },
   });
