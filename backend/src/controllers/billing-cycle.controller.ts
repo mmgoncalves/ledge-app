@@ -35,3 +35,12 @@ export async function createCycle(req: AuthRequest, res: Response): Promise<void
   const cycle = await cycleService.createCycle(req.userId!, parsed.data);
   res.status(201).json(cycle);
 }
+
+export async function getCycleSummary(req: AuthRequest, res: Response): Promise<void> {
+  const summary = await cycleService.getCycleSummary(req.userId!, String(req.params.id));
+  if (!summary) {
+    res.status(404).json({ error: 'Cycle not found' });
+    return;
+  }
+  res.json(summary);
+}
