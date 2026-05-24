@@ -19,9 +19,11 @@ RUN npm ci --only=production
 
 COPY --from=builder /app/dist ./dist
 COPY prisma ./prisma
-
-RUN npm run prisma:generate
+COPY prisma.config.ts ./
+COPY docker-entrypoint.sh ./
+RUN chmod +x docker-entrypoint.sh
 
 EXPOSE 3000
 
-CMD ["node", "dist/index.js"]
+# prisma generate runs at startup (needs DATABASE_URL from .env)
+ENTRYPOINT ["./docker-entrypoint.sh"]
