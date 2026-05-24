@@ -15,13 +15,6 @@ Hoje o controle financeiro é feito em Google Sheets. O Ledge substitui essa
 planilha com uma experiência mobile-first, com captura rápida de lançamentos,
 controle por ciclo de fatura e, futuramente, insights via IA.
 
----
-
-## Usuário
-
-Desenvolvedor mobile, renda mensal com componentes variáveis (salário + bônus),
-tem reserva de emergência e quer mantê-la, viaja e consome cultura sem culpa.
-Perde controle por falta de visibilidade, não por falta de disciplina.
 
 ---
 
@@ -115,7 +108,7 @@ uma dívida em parcelas).
 ## Repositório
 
 - Nome: `ledge-app`
-- Tipo: monorepo privado no GitHub
+- Tipo: monorepo no GitHub
 - Estrutura:
 
 ```
@@ -203,3 +196,4 @@ todos os critérios antes de abrir o PR.
 - Gráficos e dashboards — V3
 - IA e projeções — V4
 - Android — V2
+
