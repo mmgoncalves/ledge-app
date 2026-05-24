@@ -1,0 +1,43 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - '.github/workflows/deploy.yml'
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            set -e
+
+            cd ${{ secrets.DEPLOY_PATH }}
+
+            echo "[deploy] Pulling latest code..."
+            git pull origin main
+
+            echo "[deploy] Rebuilding and restarting containers..."
+            cd backend
+            docker compose up -d --build
+
+            echo "[deploy] Waiting for health check..."
+            sleep 10
+            STATUS=$(curl -sf http://localhost:3000/health | grep -o '"ok"' || echo "fail")
+            if [ "$STATUS" = '"ok"' ]; then
+              echo "[deploy] ✅ Health check passed"
+            else
+              echo "[deploy] ❌ Health check failed"
+              exit 1
+            fi
