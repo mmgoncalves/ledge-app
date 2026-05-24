@@ -25,8 +25,9 @@ jobs:
 
             cd ${{ secrets.DEPLOY_PATH }}
 
-            echo "[deploy] Pulling latest code..."
-            git pull origin main
+            echo "[deploy] Syncing to origin/main..."
+            git fetch origin main
+            git reset --hard origin/main
 
             echo "[deploy] Rebuilding and restarting containers..."
             cd backend
