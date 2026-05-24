@@ -25,6 +25,9 @@ services:
     container_name: ledge-api
     restart: unless-stopped
     env_file: .env
+    environment:
+      # Override DATABASE_URL to use the Docker service hostname instead of localhost
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
     ports:
       - "${API_PORT:-3000}:3000"
     depends_on:
