@@ -28,6 +28,12 @@ struct HomeView: View {
 
                 case .loaded(let cycle, let summary):
                     SummaryView(cycle: cycle, summary: summary)
+                        .overlay(alignment: .bottomTrailing) {
+                            AddButton {
+                                viewModel.showAddTransaction = true
+                            }
+                            .padding(24)
+                        }
 
                 case .error(let message):
                     ErrorView(message: message) {
@@ -43,6 +49,34 @@ struct HomeView: View {
             }
         }
         .task { await viewModel.load() }
+        .sheet(isPresented: $viewModel.showAddTransaction) {
+            if case .loaded(let cycle, _) = viewModel.state {
+                AddTransactionView(cycleId: cycle.id) {
+                    viewModel.showAddTransaction = false
+                    Task { await viewModel.refresh() }
+                }
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+            }
+        }
+    }
+}
+
+// MARK: - Add button (FAB)
+
+private struct AddButton: View {
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: "plus")
+                .font(.title2.bold())
+                .foregroundStyle(.white)
+                .frame(width: 56, height: 56)
+                .background(.blue, in: Circle())
+                .shadow(color: .blue.opacity(0.4), radius: 8, y: 4)
+        }
+        .accessibilityLabel("Adicionar lançamento")
     }
 }
 
