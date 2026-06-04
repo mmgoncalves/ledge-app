@@ -1,6 +1,3 @@
-// Copie este arquivo para Dev.xcconfig e configure com o IP da sua VPS
-// Dev.xcconfig é ignorado pelo git (não commite suas credenciais de dev)
-// ATENÇÃO: não use "://" aqui — o xcconfig trata // como comentário
-API_SCHEME = http
-API_HOST = YOUR_VPS_IP:3000
-ATS_EXCEPTION_DOMAIN = YOUR_VPS_IP
+// Arquivo de configuração local de desenvolvimento
+// Dev.xcconfig é ignorado pelo git
+// Por enquanto não há variáveis obrigatórias — a URL da API está em AppEnvironment.swift

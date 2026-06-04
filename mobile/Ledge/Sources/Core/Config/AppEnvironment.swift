@@ -12,18 +12,15 @@ enum AppEnvironment {
         #endif
     }
 
+    // swiftlint:disable force_unwrapping
     var baseURL: URL {
-        let info = Bundle.main.infoDictionary
-        guard
-            let scheme = info?["API_SCHEME"] as? String, !scheme.isEmpty,
-            let host = info?["API_HOST"] as? String, !host.isEmpty,
-            let url = URL(string: "\(scheme)://\(host)")
-        else {
-            fatalError(
-                "API_SCHEME ou API_HOST não configurados. " +
-                "Copie Configs/Dev.xcconfig.example para Configs/Dev.xcconfig e preencha os valores."
-            )
+        switch self {
+        case .development:
+            // URL do servidor de desenvolvimento — HTTP permitido via NSAllowsArbitraryLoads no Info.plist
+            return URL(string: "http://79.143.185.70:3000")!
+        case .production:
+            return URL(string: "https://api.ledge.app")!
         }
-        return url
     }
+    // swiftlint:enable force_unwrapping
 }
