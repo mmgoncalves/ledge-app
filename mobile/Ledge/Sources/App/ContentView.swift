@@ -39,30 +39,3 @@ struct ContentView: View {
     }
 }
 
-// MARK: - Home placeholder
-
-struct HomeView: View {
-    let onLogout: () -> Void
-
-    var body: some View {
-        NavigationStack {
-            VStack(spacing: 24) {
-                Image(systemName: "chart.line.uptrend.xyaxis")
-                    .font(.system(size: 60))
-                    .foregroundStyle(.blue)
-
-                Text("Ledge")
-                    .font(.largeTitle.bold())
-
-                Text("Em construção 🚧")
-                    .foregroundStyle(.secondary)
-            }
-            .navigationTitle("Início")
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Sair", action: onLogout)
-                }
-            }
-        }
-    }
-}
