@@ -442,10 +442,21 @@ receita, essencial, não essencial e saldo.
 **Label:** `mobile`
 
 **Descrição:**
-Implementar lista de lançamentos do ciclo consumindo
-`GET /cycles/:id/transactions`. Permitir navegação entre ciclos anteriores.
+Implementar lista de lançamentos do ciclo com navegação entre ciclos anterior e posterior.
 
-*(detalhes serão refinados quando o desenvolvedor retornar)*
+**Endpoints consumidos:**
+- `GET /cycles/:id/transactions` — lançamentos do ciclo atual
+- `GET /cycles/:id/neighbors` — ciclo anterior e próximo (ver issue #38); chamado em paralelo com o de transações, sem bloquear a exibição da lista
+
+**Comportamento:**
+- Ao entrar na tela (via Home), carrega imediatamente as transações do ciclo atual
+- Em paralelo, busca os vizinhos do ciclo para habilitar/desabilitar as setas de navegação
+- Seta `‹` habilitada apenas se `neighbors.previous != null`
+- Seta `›` habilitada apenas se `neighbors.next != null`
+- Ao navegar, repete as duas chamadas para o novo ciclo (em paralelo)
+- Transações agrupadas por dia, em ordem decrescente
+
+**Depende de:** issue #38 (endpoint de vizinhos)
 
 ---
 
@@ -477,6 +488,47 @@ via share sheet do iOS.
 
 ---
 
+---
+
+### Issue #38 — Endpoint de vizinhos do ciclo (backend)
+
+**Tipo:** `feat`
+**Label:** `backend`
+
+**Descrição:**
+Criar endpoint que retorna o ciclo imediatamente anterior e o imediatamente posterior a um ciclo dado. Usado pelo mobile para habilitar/desabilitar as setas de navegação na tela de lançamentos, sem precisar carregar a lista completa de ciclos.
+
+**Endpoint:**
+```
+GET /cycles/:id/neighbors
+```
+
+**Resposta:**
+```json
+{
+  "previous": { "id": "...", "startDate": "...", "endDate": "...", "cutDay": 10, "createdAt": "..." },
+  "next": null
+}
+```
+
+- `previous`: ciclo com `startDate` imediatamente inferior ao do ciclo informado (`null` se não existir)
+- `next`: ciclo com `startDate` imediatamente superior ao do ciclo informado (`null` se não existir)
+- Retorna `404` se o ciclo não existir ou não pertencer ao usuário autenticado
+
+**Tarefas:**
+- Implementar no `billing-cycle.service.ts` e `billing-cycle.controller.ts`
+- Registrar rota em `billing-cycles.ts`
+- Testes unitários e de integração
+
+**Critérios de aceite:**
+- Retorna `401` sem token
+- Retorna `404` para ciclo inexistente ou de outro usuário
+- `previous` e `next` corretos para ciclo no meio da lista
+- Ambos `null` quando ciclo único
+- `npm test` passa
+
+---
+
 ## Ordem de execução
 
 | #  | Issue                          | Grupo | Depende de |
@@ -493,9 +545,10 @@ via share sheet do iOS.
 | 10 | Export de dados                | A     | 9          |
 | 11 | GitHub Actions CI              | A     | 10         |
 | 12 | Deploy automático              | A     | 11         |
-| 13 | Inicializar KMP                | B     | 12         |
-| 14 | Tela de login                  | B     | 13         |
-| 15 | Tela principal                 | B     | 14         |
-| 16 | Tela de lançamentos            | B     | 15         |
-| 17 | Quick add                      | B     | 16         |
-| 18 | Export mobile                  | B     | 17         |
+| 38 | Endpoint de vizinhos do ciclo  | A     | 7          |
+| 13 | Inicializar projeto iOS        | B     | 12         |
+| 14 | Tela de login (iOS)            | B     | 13         |
+| 15 | Tela principal: Home (iOS)     | B     | 14         |
+| 16 | Tela de lançamentos (iOS)      | B     | 15, 38     |
+| 17 | Quick add (iOS)                | B     | 16         |
+| 18 | Export mobile (iOS)            | B     | 17         |
