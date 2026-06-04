@@ -8,14 +8,19 @@ final class MockBillingCycleRepository: BillingCycleRepository {
     // MARK: - Stubs
 
     var stubCurrentCycle: BillingCycle? = .fixture()
+    var stubCycles: [BillingCycle] = [.fixture()]
     var stubSummary: CycleSummary = .fixture()
+    var stubTransactions: [Transaction] = []
     var stubError: Error?
 
     // MARK: - Call tracking
 
     private(set) var getCurrentCycleCalled = false
+    private(set) var getCyclesCalled = false
     private(set) var getCycleSummaryCalled = false
+    private(set) var getTransactionsCalled = false
     private(set) var lastSummaryRequestedCycleId: String?
+    private(set) var lastTransactionsRequestedCycleId: String?
 
     // MARK: - BillingCycleRepository
 
@@ -25,11 +30,24 @@ final class MockBillingCycleRepository: BillingCycleRepository {
         return stubCurrentCycle
     }
 
+    func getCycles() async throws -> [BillingCycle] {
+        getCyclesCalled = true
+        if let error = stubError { throw error }
+        return stubCycles
+    }
+
     func getCycleSummary(cycleId: String) async throws -> CycleSummary {
         getCycleSummaryCalled = true
         lastSummaryRequestedCycleId = cycleId
         if let error = stubError { throw error }
         return stubSummary
+    }
+
+    func getTransactions(cycleId: String) async throws -> [Transaction] {
+        getTransactionsCalled = true
+        lastTransactionsRequestedCycleId = cycleId
+        if let error = stubError { throw error }
+        return stubTransactions
     }
 }
 

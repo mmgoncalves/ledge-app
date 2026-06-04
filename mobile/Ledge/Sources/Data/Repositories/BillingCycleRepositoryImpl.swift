@@ -32,6 +32,15 @@ final class BillingCycleRepositoryImpl: BillingCycleRepository {
         }
     }
 
+    func getCycles() async throws -> [BillingCycle] {
+        let token = try requireToken()
+        let responses: [BillingCycleResponse] = try await client.get(
+            path: "cycles",
+            token: token
+        )
+        return responses.compactMap { $0.toDomain() }
+    }
+
     func getCycleSummary(cycleId: String) async throws -> CycleSummary {
         let token = try requireToken()
         let response: CycleSummaryResponse = try await client.get(
@@ -39,6 +48,15 @@ final class BillingCycleRepositoryImpl: BillingCycleRepository {
             token: token
         )
         return response.toDomain()
+    }
+
+    func getTransactions(cycleId: String) async throws -> [Transaction] {
+        let token = try requireToken()
+        let responses: [TransactionResponse] = try await client.get(
+            path: "cycles/\(cycleId)/transactions",
+            token: token
+        )
+        return responses.compactMap { $0.toDomain() }
     }
 
     // MARK: - Private

@@ -109,10 +109,18 @@ private struct SummaryView: View {
     }
 
     private var transactionCountFooter: some View {
-        Text("\(summary.transactionCount) lançamento\(summary.transactionCount == 1 ? "" : "s") no ciclo")
-            .font(.footnote)
+        NavigationLink(destination: TransactionsView(cycleId: cycle.id)) {
+            HStack {
+                Text("\(summary.transactionCount) lançamento\(summary.transactionCount == 1 ? "" : "s") no ciclo")
+                    .font(.footnote)
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+            }
             .foregroundStyle(.secondary)
             .padding(.top, 4)
+        }
+        .buttonStyle(.plain)
     }
 }
 
