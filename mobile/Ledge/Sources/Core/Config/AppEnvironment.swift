@@ -13,11 +13,16 @@ enum AppEnvironment {
     }
 
     var baseURL: URL {
+        let info = Bundle.main.infoDictionary
         guard
-            let raw = Bundle.main.infoDictionary?["API_BASE_URL"] as? String,
-            let url = URL(string: raw)
+            let scheme = info?["API_SCHEME"] as? String, !scheme.isEmpty,
+            let host = info?["API_HOST"] as? String, !host.isEmpty,
+            let url = URL(string: "\(scheme)://\(host)")
         else {
-            fatalError("API_BASE_URL não configurado. Copie Configs/Dev.xcconfig.example para Configs/Dev.xcconfig.")
+            fatalError(
+                "API_SCHEME ou API_HOST não configurados. " +
+                "Copie Configs/Dev.xcconfig.example para Configs/Dev.xcconfig e preencha os valores."
+            )
         }
         return url
     }

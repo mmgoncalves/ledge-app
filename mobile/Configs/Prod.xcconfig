@@ -1,3 +1,4 @@
-API_BASE_URL = https://api.ledge.app
+API_SCHEME = https
+API_HOST = api.ledge.app
 // Prod usa HTTPS — sem exceção ATS necessária
 ATS_EXCEPTION_DOMAIN =
