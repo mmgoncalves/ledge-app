@@ -2,6 +2,15 @@ import { Response } from 'express';
 import { AuthRequest } from '../middlewares/authenticate';
 import * as cycleService from '../services/billing-cycle.service';
 
+export async function getCycleNeighbors(req: AuthRequest, res: Response): Promise<void> {
+  const neighbors = await cycleService.getCycleNeighbors(req.userId!, String(req.params.id));
+  if (!neighbors) {
+    res.status(404).json({ error: 'Cycle not found' });
+    return;
+  }
+  res.json(neighbors);
+}
+
 export async function listCycles(req: AuthRequest, res: Response): Promise<void> {
   const cycles = await cycleService.getCycles(req.userId!);
   res.json(cycles);
