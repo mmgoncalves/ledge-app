@@ -53,6 +53,12 @@ targets:
         UILaunchScreen: {}
         CFBundleDisplayName: Ledge
         API_BASE_URL: $(API_BASE_URL)
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoads: false
+          NSExceptionDomains:
+            $(ATS_EXCEPTION_DOMAIN):
+              NSExceptionAllowsInsecureHTTPLoads: true
+              NSIncludesSubdomains: false
     scheme:
       testTargets:
         - LedgeTests
