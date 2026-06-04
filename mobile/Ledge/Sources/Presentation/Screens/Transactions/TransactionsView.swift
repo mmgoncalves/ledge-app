@@ -39,12 +39,8 @@ struct TransactionsView: View {
 
             Spacer()
 
-            if let cycle = viewModel.currentCycle {
-                Text(cycle.formattedPeriod)
-                    .font(.subheadline.bold())
-            } else {
-                ProgressView()
-            }
+            Text(viewModel.currentCycle.formattedPeriod)
+                .font(.subheadline.bold())
 
             Spacer()
 
