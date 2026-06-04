@@ -41,6 +41,7 @@ captures/
 *.xcodeproj/
 *.xcworkspace/
 mobile/Configs/Dev.xcconfig
+mobile/Ledge/Resources/Info.plist
 xcuserdata/
 DerivedData/
 *.ipa

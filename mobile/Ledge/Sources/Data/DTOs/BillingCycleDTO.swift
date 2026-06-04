@@ -37,6 +37,20 @@ struct CycleSummaryResponse: Decodable {
     }
 }
 
+// MARK: - Cycle Neighbors Response
+
+struct CycleNeighborsResponse: Decodable {
+    let previous: BillingCycleResponse?
+    let next: BillingCycleResponse?
+
+    func toDomain() -> CycleNeighbors {
+        CycleNeighbors(
+            previous: previous?.toDomain(),
+            next: next?.toDomain()
+        )
+    }
+}
+
 // MARK: - Date helpers
 
 extension ISO8601DateFormatter {

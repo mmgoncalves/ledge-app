@@ -41,6 +41,24 @@ final class BillingCycleRepositoryImpl: BillingCycleRepository {
         return response.toDomain()
     }
 
+    func getTransactions(cycleId: String) async throws -> [Transaction] {
+        let token = try requireToken()
+        let responses: [TransactionResponse] = try await client.get(
+            path: "cycles/\(cycleId)/transactions",
+            token: token
+        )
+        return responses.compactMap { $0.toDomain() }
+    }
+
+    func getCycleNeighbors(cycleId: String) async throws -> CycleNeighbors {
+        let token = try requireToken()
+        let response: CycleNeighborsResponse = try await client.get(
+            path: "cycles/\(cycleId)/neighbors",
+            token: token
+        )
+        return response.toDomain()
+    }
+
     // MARK: - Private
 
     private func requireToken() throws -> String {

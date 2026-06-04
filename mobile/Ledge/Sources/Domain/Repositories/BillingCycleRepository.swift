@@ -9,4 +9,10 @@ protocol BillingCycleRepository: AnyObject {
 
     /// Retorna o resumo financeiro de um ciclo específico.
     func getCycleSummary(cycleId: String) async throws -> CycleSummary
+
+    /// Retorna os lançamentos de um ciclo específico, ordenados por data.
+    func getTransactions(cycleId: String) async throws -> [Transaction]
+
+    /// Retorna o ciclo imediatamente anterior e o próximo para um dado ciclo.
+    func getCycleNeighbors(cycleId: String) async throws -> CycleNeighbors
 }
