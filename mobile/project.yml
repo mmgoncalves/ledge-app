@@ -1,0 +1,72 @@
+name: Ledge
+
+options:
+  bundleIdPrefix: com.mmgoncalves
+  deploymentTarget:
+    iOS: "18.0"
+  defaultConfig: Debug
+  xcodeVersion: "16"
+  generateEmptyDirectories: true
+
+configs:
+  Debug: debug
+  Release: release
+
+configFiles:
+  Debug: Configs/Dev.xcconfig
+  Release: Configs/Prod.xcconfig
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    DEVELOPMENT_TEAM: "2J623KG2G3"
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+
+targets:
+  Ledge:
+    type: application
+    platform: iOS
+    deploymentTarget: "18.0"
+    sources:
+      - path: Ledge/Sources
+      - path: Ledge/Resources
+    resources:
+      - path: Ledge/Resources
+    preBuildScripts:
+      - name: SwiftLint
+        basedOnDependencyAnalysis: false
+        script: |
+          if which swiftlint > /dev/null; then
+            swiftlint
+          else
+            echo "warning: SwiftLint not installed. Run: brew install swiftlint"
+          fi
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.mmgoncalves.ledge
+        INFOPLIST_FILE: Ledge/Resources/Info.plist
+        DEVELOPMENT_ASSET_PATHS: ""
+    info:
+      path: Ledge/Resources/Info.plist
+      properties:
+        UILaunchScreen: {}
+        CFBundleDisplayName: Ledge
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoads: true
+    scheme:
+      testTargets:
+        - LedgeTests
+
+  LedgeTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "18.0"
+    sources:
+      - path: LedgeTests
+    dependencies:
+      - target: Ledge
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.mmgoncalves.ledgetests
+        GENERATE_INFOPLIST_FILE: YES

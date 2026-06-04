@@ -1,0 +1,3 @@
+// Configuração de produção
+// A URL da API está em AppEnvironment.swift — sem variáveis obrigatórias aqui por enquanto
+

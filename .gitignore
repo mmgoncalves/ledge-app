@@ -40,6 +40,7 @@ captures/
 # Xcode / iOS
 *.xcodeproj/
 *.xcworkspace/
+mobile/Configs/Dev.xcconfig
 xcuserdata/
 DerivedData/
 *.ipa
