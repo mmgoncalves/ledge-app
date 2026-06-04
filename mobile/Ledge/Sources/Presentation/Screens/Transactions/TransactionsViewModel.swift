@@ -13,80 +13,67 @@ final class TransactionsViewModel {
     }
 
     var state: ViewState = .loading
-    var allCycles: [BillingCycle] = []
-    var currentCycleIndex: Int = 0
+    var currentCycle: BillingCycle
+    var neighbors: CycleNeighbors?
 
-    var currentCycle: BillingCycle? { allCycles[safe: currentCycleIndex] }
-    var canGoPrevious: Bool { currentCycleIndex > 0 }
-    var canGoNext: Bool { currentCycleIndex < allCycles.count - 1 }
+    var canGoPrevious: Bool { neighbors?.previous != nil }
+    var canGoNext: Bool { neighbors?.next != nil }
 
     // MARK: - Dependencies
 
-    private let getCyclesUseCase: GetCyclesUseCaseProtocol
+    private let getCycleNeighborsUseCase: GetCycleNeighborsUseCaseProtocol
     private let getTransactionsUseCase: GetTransactionsUseCaseProtocol
-    private let initialCycleId: String
 
     // MARK: - Init
 
     init(
-        initialCycleId: String,
-        getCyclesUseCase: GetCyclesUseCaseProtocol,
+        initialCycle: BillingCycle,
+        getCycleNeighborsUseCase: GetCycleNeighborsUseCaseProtocol,
         getTransactionsUseCase: GetTransactionsUseCaseProtocol
     ) {
-        self.initialCycleId = initialCycleId
-        self.getCyclesUseCase = getCyclesUseCase
+        self.currentCycle = initialCycle
+        self.getCycleNeighborsUseCase = getCycleNeighborsUseCase
         self.getTransactionsUseCase = getTransactionsUseCase
     }
 
     // MARK: - Public
 
     func loadInitialData() async {
-        state = .loading
-        do {
-            let cycles = try await getCyclesUseCase.execute()
-            allCycles = cycles
-            // Posiciona no ciclo inicial
-            currentCycleIndex = cycles.firstIndex(where: { $0.id == initialCycleId }) ?? 0
-            await loadTransactions()
-        } catch {
-            state = .error(error.localizedDescription)
-        }
+        await loadCycleData(for: currentCycle)
     }
 
     func goToPreviousCycle() async {
-        guard canGoPrevious else { return }
-        currentCycleIndex -= 1
-        await loadTransactions()
+        guard let previous = neighbors?.previous else { return }
+        currentCycle = previous
+        await loadCycleData(for: previous)
     }
 
     func goToNextCycle() async {
-        guard canGoNext else { return }
-        currentCycleIndex += 1
-        await loadTransactions()
+        guard let next = neighbors?.next else { return }
+        currentCycle = next
+        await loadCycleData(for: next)
     }
 
     func refresh() async {
-        await loadTransactions()
+        await loadCycleData(for: currentCycle)
     }
 
     // MARK: - Private
 
-    private func loadTransactions() async {
-        guard let cycle = currentCycle else { return }
+    /// Carrega transações e vizinhos do ciclo em paralelo.
+    /// As setas ficam disponíveis assim que os vizinhos chegarem,
+    /// sem bloquear a exibição da lista de transações.
+    private func loadCycleData(for cycle: BillingCycle) async {
         state = .loading
         do {
-            let transactions = try await getTransactionsUseCase.execute(cycleId: cycle.id)
-            state = transactions.isEmpty ? .empty : .loaded(transactions)
+            async let transactions = getTransactionsUseCase.execute(cycleId: cycle.id)
+            async let fetchedNeighbors = getCycleNeighborsUseCase.execute(cycleId: cycle.id)
+
+            let (txns, nbrs) = try await (transactions, fetchedNeighbors)
+            neighbors = nbrs
+            state = txns.isEmpty ? .empty : .loaded(txns)
         } catch {
             state = .error(error.localizedDescription)
         }
-    }
-}
-
-// MARK: - Array safe subscript
-
-private extension Array {
-    subscript(safe index: Int) -> Element? {
-        indices.contains(index) ? self[index] : nil
     }
 }

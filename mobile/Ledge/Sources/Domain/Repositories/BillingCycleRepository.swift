@@ -7,12 +7,12 @@ protocol BillingCycleRepository: AnyObject {
     /// Retorna o ciclo ativo no momento, ou `nil` se não houver nenhum.
     func getCurrentCycle() async throws -> BillingCycle?
 
-    /// Retorna todos os ciclos do usuário, ordenados do mais recente ao mais antigo.
-    func getCycles() async throws -> [BillingCycle]
-
     /// Retorna o resumo financeiro de um ciclo específico.
     func getCycleSummary(cycleId: String) async throws -> CycleSummary
 
     /// Retorna os lançamentos de um ciclo específico, ordenados por data.
     func getTransactions(cycleId: String) async throws -> [Transaction]
+
+    /// Retorna o ciclo imediatamente anterior e o próximo para um dado ciclo.
+    func getCycleNeighbors(cycleId: String) async throws -> CycleNeighbors
 }

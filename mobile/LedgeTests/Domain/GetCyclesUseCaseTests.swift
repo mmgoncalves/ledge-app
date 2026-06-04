@@ -1,55 +1,96 @@
 import XCTest
 @testable import Ledge
 
-final class GetCyclesUseCaseTests: XCTestCase {
+// MARK: - Fixtures
+
+extension CycleNeighbors {
+    static func fixture(
+        previous: BillingCycle? = nil,
+        next: BillingCycle? = nil
+    ) -> CycleNeighbors {
+        CycleNeighbors(previous: previous, next: next)
+    }
+}
+
+// MARK: - Tests
+
+final class GetCycleNeighborsUseCaseTests: XCTestCase {
 
     // MARK: - Helpers
 
     private func makeSUT(repository: MockBillingCycleRepository = MockBillingCycleRepository())
-        -> (sut: GetCyclesUseCase, repository: MockBillingCycleRepository)
+        -> (sut: GetCycleNeighborsUseCase, repository: MockBillingCycleRepository)
     {
-        (GetCyclesUseCase(repository: repository), repository)
+        (GetCycleNeighborsUseCase(repository: repository), repository)
     }
 
     // MARK: - Happy path
 
-    func test_execute_returnsCycles() async throws {
+    func test_execute_returnsBothNeighbors_whenCycleIsInTheMiddle() async throws {
         // given
         let (sut, repo) = makeSUT()
-        let expected = [
-            BillingCycle.fixture(id: "cycle-1"),
-            BillingCycle.fixture(id: "cycle-2")
-        ]
-        repo.stubCycles = expected
+        let previous = BillingCycle.fixture(id: "cycle-may")
+        let next = BillingCycle.fixture(id: "cycle-july")
+        repo.stubNeighbors = CycleNeighbors(previous: previous, next: next)
 
         // when
-        let result = try await sut.execute()
+        let result = try await sut.execute(cycleId: "cycle-june")
 
         // then
-        XCTAssertEqual(result, expected)
+        XCTAssertEqual(result.previous, previous)
+        XCTAssertEqual(result.next, next)
     }
 
-    func test_execute_returnsEmptyList_whenNoCyclesExist() async throws {
+    func test_execute_returnsPreviousNil_whenCycleIsOldest() async throws {
         // given
         let (sut, repo) = makeSUT()
-        repo.stubCycles = []
+        repo.stubNeighbors = CycleNeighbors(previous: nil, next: .fixture(id: "cycle-next"))
 
         // when
-        let result = try await sut.execute()
+        let result = try await sut.execute(cycleId: "cycle-oldest")
 
         // then
-        XCTAssertTrue(result.isEmpty)
+        XCTAssertNil(result.previous)
+        XCTAssertNotNil(result.next)
     }
 
-    func test_execute_callsRepository() async throws {
+    func test_execute_returnsNextNil_whenCycleIsMostRecent() async throws {
         // given
         let (sut, repo) = makeSUT()
+        repo.stubNeighbors = CycleNeighbors(previous: .fixture(id: "cycle-prev"), next: nil)
 
         // when
-        _ = try await sut.execute()
+        let result = try await sut.execute(cycleId: "cycle-latest")
 
         // then
-        XCTAssertTrue(repo.getCyclesCalled)
+        XCTAssertNotNil(result.previous)
+        XCTAssertNil(result.next)
+    }
+
+    func test_execute_returnsBothNil_whenCycleIsAlone() async throws {
+        // given
+        let (sut, repo) = makeSUT()
+        repo.stubNeighbors = CycleNeighbors(previous: nil, next: nil)
+
+        // when
+        let result = try await sut.execute(cycleId: "cycle-only")
+
+        // then
+        XCTAssertNil(result.previous)
+        XCTAssertNil(result.next)
+    }
+
+    func test_execute_callsRepositoryWithCorrectCycleId() async throws {
+        // given
+        let (sut, repo) = makeSUT()
+        let cycleId = "cycle-abc-123"
+
+        // when
+        _ = try await sut.execute(cycleId: cycleId)
+
+        // then
+        XCTAssertTrue(repo.getCycleNeighborsCalled)
+        XCTAssertEqual(repo.lastNeighborsRequestedCycleId, cycleId)
     }
 
     // MARK: - Error handling
@@ -60,6 +101,6 @@ final class GetCyclesUseCaseTests: XCTestCase {
         repo.stubError = APIError.network(URLError(.notConnectedToInternet))
 
         // when / then
-        await XCTAssertThrowsErrorAsync(try await sut.execute())
+        await XCTAssertThrowsErrorAsync(try await sut.execute(cycleId: "cycle-1"))
     }
 }

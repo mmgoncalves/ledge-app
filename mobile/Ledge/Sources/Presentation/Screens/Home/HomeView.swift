@@ -109,7 +109,7 @@ private struct SummaryView: View {
     }
 
     private var transactionCountFooter: some View {
-        NavigationLink(destination: TransactionsView(cycleId: cycle.id)) {
+        NavigationLink(destination: TransactionsView(cycle: cycle)) {
             HStack {
                 Text("\(summary.transactionCount) lançamento\(summary.transactionCount == 1 ? "" : "s") no ciclo")
                     .font(.footnote)

@@ -8,19 +8,20 @@ final class MockBillingCycleRepository: BillingCycleRepository {
     // MARK: - Stubs
 
     var stubCurrentCycle: BillingCycle? = .fixture()
-    var stubCycles: [BillingCycle] = [.fixture()]
     var stubSummary: CycleSummary = .fixture()
     var stubTransactions: [Transaction] = []
+    var stubNeighbors: CycleNeighbors = CycleNeighbors(previous: nil, next: nil)
     var stubError: Error?
 
     // MARK: - Call tracking
 
     private(set) var getCurrentCycleCalled = false
-    private(set) var getCyclesCalled = false
     private(set) var getCycleSummaryCalled = false
     private(set) var getTransactionsCalled = false
+    private(set) var getCycleNeighborsCalled = false
     private(set) var lastSummaryRequestedCycleId: String?
     private(set) var lastTransactionsRequestedCycleId: String?
+    private(set) var lastNeighborsRequestedCycleId: String?
 
     // MARK: - BillingCycleRepository
 
@@ -28,12 +29,6 @@ final class MockBillingCycleRepository: BillingCycleRepository {
         getCurrentCycleCalled = true
         if let error = stubError { throw error }
         return stubCurrentCycle
-    }
-
-    func getCycles() async throws -> [BillingCycle] {
-        getCyclesCalled = true
-        if let error = stubError { throw error }
-        return stubCycles
     }
 
     func getCycleSummary(cycleId: String) async throws -> CycleSummary {
@@ -48,6 +43,13 @@ final class MockBillingCycleRepository: BillingCycleRepository {
         lastTransactionsRequestedCycleId = cycleId
         if let error = stubError { throw error }
         return stubTransactions
+    }
+
+    func getCycleNeighbors(cycleId: String) async throws -> CycleNeighbors {
+        getCycleNeighborsCalled = true
+        lastNeighborsRequestedCycleId = cycleId
+        if let error = stubError { throw error }
+        return stubNeighbors
     }
 }
 

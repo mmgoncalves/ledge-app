@@ -3,12 +3,12 @@ import SwiftUI
 struct TransactionsView: View {
     @State private var viewModel: TransactionsViewModel
 
-    init(cycleId: String) {
+    init(cycle: BillingCycle) {
         let repository = BillingCycleRepositoryImpl()
         self._viewModel = State(
             initialValue: TransactionsViewModel(
-                initialCycleId: cycleId,
-                getCyclesUseCase: GetCyclesUseCase(repository: repository),
+                initialCycle: cycle,
+                getCycleNeighborsUseCase: GetCycleNeighborsUseCase(repository: repository),
                 getTransactionsUseCase: GetTransactionsUseCase(repository: repository)
             )
         )

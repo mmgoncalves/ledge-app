@@ -1,18 +1,3 @@
-import Foundation
-
-protocol GetCyclesUseCaseProtocol {
-    func execute() async throws -> [BillingCycle]
-}
-
-final class GetCyclesUseCase: GetCyclesUseCaseProtocol {
-
-    private let repository: BillingCycleRepository
-
-    init(repository: BillingCycleRepository) {
-        self.repository = repository
-    }
-
-    func execute() async throws -> [BillingCycle] {
-        try await repository.getCycles()
-    }
-}
+// Este arquivo foi substituído por GetCycleNeighborsUseCase.swift
+// Mantido apenas para não quebrar o índice do XcodeGen até o próximo
+// `xcodegen generate`. O conteúdo foi removido propositalmente.

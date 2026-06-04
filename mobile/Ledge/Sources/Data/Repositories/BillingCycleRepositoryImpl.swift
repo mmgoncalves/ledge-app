@@ -32,15 +32,6 @@ final class BillingCycleRepositoryImpl: BillingCycleRepository {
         }
     }
 
-    func getCycles() async throws -> [BillingCycle] {
-        let token = try requireToken()
-        let responses: [BillingCycleResponse] = try await client.get(
-            path: "cycles",
-            token: token
-        )
-        return responses.compactMap { $0.toDomain() }
-    }
-
     func getCycleSummary(cycleId: String) async throws -> CycleSummary {
         let token = try requireToken()
         let response: CycleSummaryResponse = try await client.get(
@@ -57,6 +48,15 @@ final class BillingCycleRepositoryImpl: BillingCycleRepository {
             token: token
         )
         return responses.compactMap { $0.toDomain() }
+    }
+
+    func getCycleNeighbors(cycleId: String) async throws -> CycleNeighbors {
+        let token = try requireToken()
+        let response: CycleNeighborsResponse = try await client.get(
+            path: "cycles/\(cycleId)/neighbors",
+            token: token
+        )
+        return response.toDomain()
     }
 
     // MARK: - Private
