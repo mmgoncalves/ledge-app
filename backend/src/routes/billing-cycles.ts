@@ -6,6 +6,7 @@ import {
   getCycleById,
   createCycle,
   getCycleSummary,
+  getCycleNeighbors,
 } from '../controllers/billing-cycle.controller';
 import { listTransactions, createTransaction } from '../controllers/transaction.controller';
 
@@ -16,6 +17,7 @@ router.use(authenticate);
 router.get('/', listCycles);
 router.get('/current', getCurrentCycle);
 router.get('/:id/summary', getCycleSummary);
+router.get('/:id/neighbors', getCycleNeighbors);
 router.get('/:id', getCycleById);
 router.post('/', createCycle);
 

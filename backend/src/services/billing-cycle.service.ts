@@ -60,6 +60,32 @@ export interface CycleSummary {
   transactionCount: number;
 }
 
+export interface CycleNeighbors {
+  previous: Awaited<ReturnType<typeof prisma.billingCycle.findFirst>>;
+  next: Awaited<ReturnType<typeof prisma.billingCycle.findFirst>>;
+}
+
+export async function getCycleNeighbors(
+  userId: string,
+  cycleId: string,
+): Promise<CycleNeighbors | null> {
+  const cycle = await prisma.billingCycle.findFirst({ where: { id: cycleId, userId } });
+  if (!cycle) return null;
+
+  const [previous, next] = await Promise.all([
+    prisma.billingCycle.findFirst({
+      where: { userId, startDate: { lt: cycle.startDate } },
+      orderBy: { startDate: 'desc' },
+    }),
+    prisma.billingCycle.findFirst({
+      where: { userId, startDate: { gt: cycle.startDate } },
+      orderBy: { startDate: 'asc' },
+    }),
+  ]);
+
+  return { previous, next };
+}
+
 export async function getCycleSummary(
   userId: string,
   cycleId: string,
