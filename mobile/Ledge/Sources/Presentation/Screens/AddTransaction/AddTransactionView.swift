@@ -24,10 +24,10 @@ struct AddTransactionView: View {
                 detailsSection
                 typeSection
                 paymentMethodSection
-                dateSection
                 if viewModel.paymentMethod == .creditCard {
                     installmentSection
                 }
+                dateSection
             }
             .navigationTitle("Novo lançamento")
             .navigationBarTitleDisplayMode(.inline)
@@ -57,10 +57,13 @@ struct AddTransactionView: View {
             HStack {
                 Text("R$")
                     .foregroundStyle(.secondary)
-                TextField("0,00", text: $viewModel.amountText)
-                    .keyboardType(.decimalPad)
-                    .focused($amountFocused)
-                    .font(.title2.bold())
+                TextField("0,00", text: Binding(
+                    get: { viewModel.amountDisplayText },
+                    set: { viewModel.updateAmount($0) }
+                ))
+                .keyboardType(.numberPad)
+                .focused($amountFocused)
+                .font(.title2.bold())
             }
         } header: {
             Text("Valor")

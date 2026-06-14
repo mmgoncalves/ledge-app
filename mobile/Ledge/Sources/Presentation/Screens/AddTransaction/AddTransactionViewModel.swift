@@ -14,7 +14,9 @@ final class AddTransactionViewModel {
 
     // MARK: - Form fields
 
-    var amountText: String = ""
+    /// Apenas os dígitos digitados pelo usuário (ex: "12350" = R$ 123,50).
+    /// Nunca expor diretamente na UI — usar `amountDisplayText` e `updateAmount(_:)`.
+    private(set) var amountDigits: String = ""
     var description: String = ""
     var type: TransactionType = .essential
     var paymentMethod: PaymentMethod = .pix
@@ -26,13 +28,21 @@ final class AddTransactionViewModel {
 
     // MARK: - Computed
 
-    /// Converte o texto digitado em centavos. Aceita "150" ou "150,50" ou "150.50".
+    /// Texto formatado em Real para exibição no TextField (ex: "1.234,56").
+    var amountDisplayText: String {
+        guard let cents = amountInCents else { return "" }
+        let formatter = NumberFormatter()
+        formatter.locale = Locale(identifier: "pt_BR")
+        formatter.numberStyle = .decimal
+        formatter.minimumFractionDigits = 2
+        formatter.maximumFractionDigits = 2
+        return formatter.string(from: NSNumber(value: Double(cents) / 100.0)) ?? ""
+    }
+
+    /// Valor total digitado em centavos.
     var amountInCents: Int? {
-        let normalized = amountText
-            .replacingOccurrences(of: ",", with: ".")
-            .trimmingCharacters(in: .whitespaces)
-        guard let value = Double(normalized), value > 0 else { return nil }
-        return Int((value * 100).rounded())
+        guard !amountDigits.isEmpty, let value = Int(amountDigits), value > 0 else { return nil }
+        return value
     }
 
     var isValid: Bool {
@@ -41,6 +51,14 @@ final class AddTransactionViewModel {
 
     var effectiveInstallmentTotal: Int {
         (isInstallment && paymentMethod == .creditCard) ? installmentTotal : 1
+    }
+
+    // MARK: - Input handling
+
+    /// Chamado pelo TextField a cada keystroke; extrai só os dígitos e limita a 10 chars.
+    func updateAmount(_ rawInput: String) {
+        let digits = rawInput.filter(\.isNumber)
+        amountDigits = String(digits.prefix(10))
     }
 
     // MARK: - Dependencies
@@ -64,16 +82,20 @@ final class AddTransactionViewModel {
     // MARK: - Public
 
     func save() async {
-        guard let cents = amountInCents else { return }
+        guard let totalCents = amountInCents else { return }
         saveState = .saving
+
+        let installments = effectiveInstallmentTotal
+        // Valor por parcela: divide o total e arredonda para centavos inteiros
+        let perInstallmentCents = Int((Double(totalCents) / Double(installments)).rounded())
 
         let input = NewTransaction(
             description: description.trimmingCharacters(in: .whitespaces),
-            amount: cents,
+            amount: perInstallmentCents,
             date: date,
             type: type,
             paymentMethod: paymentMethod,
-            installmentTotal: effectiveInstallmentTotal
+            installmentTotal: installments
         )
 
         do {
