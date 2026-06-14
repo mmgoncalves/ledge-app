@@ -13,6 +13,7 @@ final class HomeViewModel {
     }
 
     var state: ViewState = .loading
+    var showAddTransaction: Bool = false
 
     // MARK: - Dependencies
 
@@ -25,6 +26,10 @@ final class HomeViewModel {
     }
 
     // MARK: - Public
+
+    func refresh() async {
+        await load()
+    }
 
     func load() async {
         state = .loading
