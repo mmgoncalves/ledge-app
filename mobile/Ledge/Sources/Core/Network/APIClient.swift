@@ -28,6 +28,39 @@ final class APIClient {
         let request = try buildRequest(method: "GET", path: path, body: Optional<String>.none, token: token)
         return try await perform(request)
     }
+
+    /// Retorna dados brutos sem tentar decodificar como JSON (usado para export CSV/JSON).
+    func getRawData(
+        path: String,
+        queryItems: [URLQueryItem],
+        token: String
+    ) async throws -> Data {
+        var components = URLComponents(
+            url: environment.baseURL.appendingPathComponent(path),
+            resolvingAgainstBaseURL: true
+        )
+        components?.queryItems = queryItems
+        guard let url = components?.url else { throw APIError.invalidURL }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+
+        let data: Data
+        let response: URLResponse
+        do {
+            (data, response) = try await session.data(for: request)
+        } catch {
+            throw APIError.network(error)
+        }
+
+        if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) {
+            let message = (try? decoder.decode(ErrorResponse.self, from: data))?.error
+            throw APIError.httpError(statusCode: http.statusCode, message: message)
+        }
+
+        return data
+    }
 }
 
 // MARK: - Private
