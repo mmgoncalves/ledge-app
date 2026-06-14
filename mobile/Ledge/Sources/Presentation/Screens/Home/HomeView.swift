@@ -43,8 +43,11 @@ struct HomeView: View {
             }
             .navigationTitle("Ledge")
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .topBarLeading) {
                     Button("Sair", action: onLogout)
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    exportToolbarButton
                 }
             }
         }
@@ -59,6 +62,62 @@ struct HomeView: View {
                 .presentationDragIndicator(.visible)
             }
         }
+        .confirmationDialog(
+            "Exportar dados",
+            isPresented: $viewModel.showExportPicker,
+            titleVisibility: .visible
+        ) {
+            ForEach(ExportFormat.allCases, id: \.self) { format in
+                Button(format.label) {
+                    Task { await viewModel.export(format: format) }
+                }
+            }
+            Button("Cancelar", role: .cancel) {}
+        }
+        .sheet(isPresented: $viewModel.showShareSheet) {
+            if let data = viewModel.exportData {
+                ShareSheet(
+                    data: data,
+                    filename: viewModel.exportFormat.filename,
+                    mimeType: viewModel.exportFormat.mimeType
+                )
+                .presentationDetents([.medium, .large])
+            }
+        }
+        .alert("Erro ao exportar", isPresented: exportErrorBinding) {
+            Button("OK") { viewModel.exportState = .idle }
+        } message: {
+            if case .error(let msg) = viewModel.exportState {
+                Text(msg)
+            }
+        }
+    }
+
+    // MARK: - Export toolbar button
+
+    private var exportToolbarButton: some View {
+        Group {
+            if case .loading = viewModel.exportState {
+                ProgressView()
+                    .scaleEffect(0.8)
+            } else {
+                Button {
+                    viewModel.showExportPicker = true
+                } label: {
+                    Image(systemName: "square.and.arrow.up")
+                }
+            }
+        }
+    }
+
+    private var exportErrorBinding: Binding<Bool> {
+        Binding(
+            get: {
+                if case .error = viewModel.exportState { return true }
+                return false
+            },
+            set: { _ in }
+        )
     }
 }
 

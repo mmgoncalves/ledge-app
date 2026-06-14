@@ -12,20 +12,38 @@ final class HomeViewModel {
         case error(String)
     }
 
+    enum ExportState {
+        case idle
+        case loading
+        case error(String)
+    }
+
     var state: ViewState = .loading
     var showAddTransaction: Bool = false
 
+    // Export
+    var exportState: ExportState = .idle
+    var showExportPicker: Bool = false
+    var exportData: Data?
+    var exportFormat: ExportFormat = .json
+    var showShareSheet: Bool = false
+
     // MARK: - Dependencies
 
-    private let useCase: GetCurrentCycleSummaryUseCaseProtocol
+    private let summaryUseCase: GetCurrentCycleSummaryUseCaseProtocol
+    private let exportUseCase: ExportDataUseCaseProtocol
 
     // MARK: - Init
 
-    init(useCase: GetCurrentCycleSummaryUseCaseProtocol) {
-        self.useCase = useCase
+    init(
+        useCase: GetCurrentCycleSummaryUseCaseProtocol,
+        exportUseCase: ExportDataUseCaseProtocol = ExportDataUseCase(repository: ExportRepositoryImpl())
+    ) {
+        self.summaryUseCase = useCase
+        self.exportUseCase = exportUseCase
     }
 
-    // MARK: - Public
+    // MARK: - Summary
 
     func refresh() async {
         await load()
@@ -34,13 +52,27 @@ final class HomeViewModel {
     func load() async {
         state = .loading
         do {
-            if let result = try await useCase.execute() {
+            if let result = try await summaryUseCase.execute() {
                 state = .loaded(cycle: result.cycle, summary: result.summary)
             } else {
                 state = .noCycle
             }
         } catch {
             state = .error(error.localizedDescription)
+        }
+    }
+
+    // MARK: - Export
+
+    func export(format: ExportFormat) async {
+        exportState = .loading
+        exportFormat = format
+        do {
+            exportData = try await exportUseCase.execute(format: format)
+            exportState = .idle
+            showShareSheet = true
+        } catch {
+            exportState = .error(error.localizedDescription)
         }
     }
 }
